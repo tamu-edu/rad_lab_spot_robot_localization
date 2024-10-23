@@ -5,6 +5,8 @@ from sensor_msgs.msg import Imu, NavSatFix
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import TwistStamped, TwistWithCovarianceStamped, Quaternion
 import numpy as np
+import tf_transformations
+import math
 
 class SensorFusionNode(Node):
     def __init__(self):
@@ -19,9 +21,10 @@ class SensorFusionNode(Node):
         self.publisher_twist_cov = self.create_publisher(TwistWithCovarianceStamped, '/mcu/state/vel_with_covariance', 10)
 
         # Odom Subscriber and IMU publisher
-        self.odom_sub = self.create_subscription(
+        self.odom_sub = self.create_subscription( 
             Odometry, '/gx5/nav/odom', self.listener_odom_callback, 10)
         self.imu_pub = self.create_publisher(Imu, '/gx5/imu_with_covariance', 10)
+        self.enu_heading_pub = self.create_publisher(Imu, '/gx5/enu_heading', 10)
 
         # GPS subscriber and publisher
         self.gps_sub = self.create_subscription(
@@ -68,14 +71,45 @@ class SensorFusionNode(Node):
         # Republish the modified Twist message
         self.publisher_twist_cov.publish(new_msg)
 
+    def transform_quaternion(self,input_quaternion):
+
+        # Convert input Quaternion to tuple (x, y, z, w)
+        quat_in = [input_quaternion.x, input_quaternion.y, input_quaternion.z, input_quaternion.w]
+        
+        # Create a rotation quaternion for pi/2 radians around Z-axis
+        rotation_quat = tf_transformations.quaternion_from_euler(0, 0, -math.pi / 2)
+        
+        # Multiply the rotation quaternion by the input quaternion
+        quat_out = tf_transformations.quaternion_multiply(rotation_quat, quat_in)
+        
+        # Normalize the output quaternion
+        quat_out = tf_transformations.unit_vector(quat_out)
+        
+        # Convert back to geometry_msgs.msg.Quaternion
+        output_quaternion = Quaternion()
+        output_quaternion.x = quat_out[0]
+        output_quaternion.y = quat_out[1]
+        output_quaternion.z = quat_out[2]
+        output_quaternion.w = quat_out[3]
+        
+        # Negate the x, y, z components
+        left_handed_quaternion = Quaternion()
+        left_handed_quaternion.x = -output_quaternion.x
+        left_handed_quaternion.y = -output_quaternion.y
+        left_handed_quaternion.z = -output_quaternion.z
+        left_handed_quaternion.w = output_quaternion.w
+
+        return left_handed_quaternion
+
+
     def rotate_along_x_by_pi(self, q):
         # Create a new Quaternion message
         rotated_q = Quaternion()
         
         # Keep w and x the same, negate y and z
         rotated_q.w = q.w
-        rotated_q.x = q.x
-        rotated_q.y = -q.y
+        rotated_q.x = q.y
+        rotated_q.y = q.x
         rotated_q.z = -q.z
         
         return rotated_q
@@ -84,11 +118,18 @@ class SensorFusionNode(Node):
         imu_msg = Imu()
         imu_msg.header = msg.header
         imu_msg.header.frame_id = 'body'
-        rotated_orientation = self.rotate_along_x_by_pi(msg.pose.pose.orientation)
-        imu_msg.orientation = rotated_orientation
+        # rotated_orientation = self.rotate_along_x_by_pi(msg.pose.pose.orientation)
+        imu_msg.orientation = msg.pose.pose.orientation
         imu_msg.orientation_covariance = self.fill_covariance(0.1,3)
         self.imu_pub.publish(imu_msg)
 
+        enu_imu_msg = Imu()
+        enu_imu_msg.header = msg.header
+        enu_imu_msg.header.frame_id = 'body'
+        enu_imu_msg.orientation = self.transform_quaternion(msg.pose.pose.orientation)
+        enu_imu_msg.orientation_covariance = self.fill_covariance(0.1,3)
+        self.enu_heading_pub.publish(enu_imu_msg)
+        
     def fill_covariance(self, value, num_states):
         return np.diag([value]*num_states).flatten().tolist() # TODO: make this 3 for IMU
 
