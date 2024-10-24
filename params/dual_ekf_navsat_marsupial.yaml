@@ -26,7 +26,7 @@ ekf_filter_node_odom:
 
     imu0: /gx5/imu_with_covariance # 50hz
     imu0_config: [false, false, false,
-                  true,  true,  true,
+                  true,  true,  false,
                   false, false, false,
                   false,  false,  false,
                   false,  false,  false]
@@ -34,6 +34,17 @@ ekf_filter_node_odom:
     imu0_differential: false
     imu0_relative: false
     imu0_queue_size: 10
+
+    imu1: /gx5/enu_heading
+    imu1_config: [false, false, false,
+                  false,  false,  true,
+                  false, false, false,
+                  false,  false,  false,
+                  false,  false,  false]
+    imu1_nodelay: false
+    imu1_differential: false
+    imu1_relative: false
+    imu1_queue_size: 10
 
     use_control: false
 
@@ -106,7 +117,7 @@ ekf_filter_node_map:
 
     imu0: /gx5/imu_with_covariance # 50hz
     imu0_config: [false, false, false,
-                  true,  true,  true,
+                  true,  true,  false,
                   false, false, false,
                   false,  false,  false,
                   false,  false,  false]
@@ -114,6 +125,17 @@ ekf_filter_node_map:
     imu0_differential: false
     imu0_relative: false
     imu0_queue_size: 10
+
+    imu1: /gx5/enu_heading
+    imu1_config: [false, false, false,
+                  false,  false,  true,
+                  false, false, false,
+                  false,  false,  false,
+                  false,  false,  false]
+    imu1_nodelay: false
+    imu1_differential: false
+    imu1_relative: false
+    imu1_queue_size: 10
 
     use_control: false
 
