@@ -131,7 +131,7 @@ class SensorFusionNode(Node):
         self.enu_heading_pub.publish(enu_imu_msg)
         
     def fill_covariance(self, value, num_states):
-        return np.diag([value]*num_states).flatten().tolist() # TODO: make this 3 for IMU
+        return np.diag([value]*num_states).flatten().tolist()
 
     def gps_callback(self, msg):
         self.new_gps_msg = NavSatFix()

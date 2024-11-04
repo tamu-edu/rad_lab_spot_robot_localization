@@ -298,7 +298,6 @@ if(BUILD_TESTING)
   # Install Python executables
   install(PROGRAMS
   scripts/topic_republisher.py
-  scripts/csv_writer.py
   DESTINATION lib/${PROJECT_NAME}
   )
 
