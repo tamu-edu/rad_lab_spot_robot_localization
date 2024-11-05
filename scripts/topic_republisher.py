@@ -127,6 +127,17 @@ class SensorFusionNode(Node):
         enu_imu_msg.header = msg.header
         enu_imu_msg.header.frame_id = 'body'
         enu_imu_msg.orientation = self.transform_quaternion(msg.pose.pose.orientation)
+        # debug
+        orientation_q = enu_imu_msg.orientation
+        quaternion = (
+            orientation_q.x,
+            orientation_q.y,
+            orientation_q.z,
+            orientation_q.w
+        )
+        roll, pitch, yaw = tf_transformations.euler_from_quaternion(quaternion)
+        self.get_logger().info(f"Yaw: {yaw:.2f} radians")
+        # end of debug
         enu_imu_msg.orientation_covariance = self.fill_covariance(0.1,3)
         self.enu_heading_pub.publish(enu_imu_msg)
         

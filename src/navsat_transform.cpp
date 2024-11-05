@@ -99,10 +99,13 @@ NavSatTransform::NavSatTransform(const rclcpp::NodeOptions & options)
   publish_gps_ = this->declare_parameter("publish_filtered_gps", true);
   use_odometry_yaw_ = this->declare_parameter("use_odometry_yaw", false);
   use_manual_datum_ = this->declare_parameter("wait_for_datum", false);
-  use_local_cartesian_ = this->declare_parameter("use_local_cartesian", false);
+  use_local_cartesian_ = this->declare_parameter("use_local_cartesian", false); // TODO: change made here
   frequency = this->declare_parameter("frequency", frequency);
   delay = this->declare_parameter("delay", delay);
   transform_timeout = this->declare_parameter("transform_timeout", transform_timeout);
+
+  RCLCPP_INFO(this->get_logger(), "Parameter 'wait_for_datum' (use_manual_datum_) set to: %s", use_manual_datum_ ? "true" : "false");
+  RCLCPP_INFO(this->get_logger(), "Parameter 'use_local_cartesian' set to: %s", use_local_cartesian_ ? "true" : "false");
 
   transform_timeout_ = tf2::durationFromSec(transform_timeout);
 
@@ -236,11 +239,15 @@ void NavSatTransform::transformCallback()
 
 void NavSatTransform::computeTransform()
 {
+  RCLCPP_INFO(this->get_logger(), "in the computeTransform section");
   // When using manual datum, wait for the receive of odometry message so
   // that the base frame and world frame names can be set before
   // the manual datum pose is set. This must be done prior to the transform computation.
   if (!transform_good_ && has_transform_odom_ && use_manual_datum_) {
+    RCLCPP_INFO(this->get_logger(), "meeting all requirements");
     setManualDatum();
+  } else {
+    RCLCPP_INFO(this->get_logger(), "not meeting some requirements");
   }
 
   // Only do this if:
