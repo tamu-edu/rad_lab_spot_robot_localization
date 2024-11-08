@@ -297,7 +297,9 @@ if(BUILD_TESTING)
 
   # Install Python executables
   install(PROGRAMS
-  scripts/topic_republisher.py
+    scripts/localization_launcher.py
+    scripts/topic_republisher.py
+    scripts/set_datum.py
   DESTINATION lib/${PROJECT_NAME}
   )
 

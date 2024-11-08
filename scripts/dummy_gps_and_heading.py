@@ -18,14 +18,14 @@ class GPSHeadingPublisher(Node):
     def publish_data(self):
         # Create and populate NavSatFix message
         gps_msg = NavSatFix()
-        gps_msg.latitude = 32.779167
-        gps_msg.longitude = -96.808891
+        gps_msg.latitude = 30.6405192
+        gps_msg.longitude = -96.4872006
         gps_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_APPROXIMATED
         self.gps_publisher.publish(gps_msg)
 
         # Create and publish Float64 message for heading
         heading_msg = Float64()
-        heading_msg.data = -1.589
+        heading_msg.data = -1.59
 
         # Log and publish the heading data
         self.heading_publisher.publish(heading_msg)

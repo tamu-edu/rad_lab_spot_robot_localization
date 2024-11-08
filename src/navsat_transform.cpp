@@ -104,9 +104,6 @@ NavSatTransform::NavSatTransform(const rclcpp::NodeOptions & options)
   delay = this->declare_parameter("delay", delay);
   transform_timeout = this->declare_parameter("transform_timeout", transform_timeout);
 
-  RCLCPP_INFO(this->get_logger(), "Parameter 'wait_for_datum' (use_manual_datum_) set to: %s", use_manual_datum_ ? "true" : "false");
-  RCLCPP_INFO(this->get_logger(), "Parameter 'use_local_cartesian' set to: %s", use_local_cartesian_ ? "true" : "false");
-
   transform_timeout_ = tf2::durationFromSec(transform_timeout);
 
   broadcast_cartesian_transform_ =
@@ -222,9 +219,22 @@ void NavSatTransform::transformCallback()
       // Once we have the transform, we don't need the IMU
       imu_sub_.reset();
     }
-  } else {
-    auto gps_odom = std::make_unique<nav_msgs::msg::Odometry>();
+  } else { // comes here
+    auto gps_odom = std::make_unique<nav_msgs::msg::Odometry>(); // create a smart pointer to an empty odom msg
     if (prepareGpsOdometry(gps_odom.get())) {
+
+      // // Print the gps_odom contents before publishing
+      // RCLCPP_INFO(this->get_logger(), "Publishing /odometry/gps with position: x=%f, y=%f, z=%f",
+      //             gps_odom->pose.pose.position.x,
+      //             gps_odom->pose.pose.position.y,
+      //             gps_odom->pose.pose.position.z);
+
+      // RCLCPP_INFO(this->get_logger(), "Publishing /odometry/gps with orientation: x=%f, y=%f, z=%f, w=%f",
+      //             gps_odom->pose.pose.orientation.x,
+      //             gps_odom->pose.pose.orientation.y,
+      //             gps_odom->pose.pose.orientation.z,
+      //             gps_odom->pose.pose.orientation.w);
+
       gps_odom_pub_->publish(std::move(gps_odom));
     }
 
@@ -239,15 +249,12 @@ void NavSatTransform::transformCallback()
 
 void NavSatTransform::computeTransform()
 {
-  RCLCPP_INFO(this->get_logger(), "in the computeTransform section");
   // When using manual datum, wait for the receive of odometry message so
   // that the base frame and world frame names can be set before
   // the manual datum pose is set. This must be done prior to the transform computation.
   if (!transform_good_ && has_transform_odom_ && use_manual_datum_) {
-    RCLCPP_INFO(this->get_logger(), "meeting all requirements");
+
     setManualDatum();
-  } else {
-    RCLCPP_INFO(this->get_logger(), "not meeting some requirements");
   }
 
   // Only do this if:
@@ -633,6 +640,8 @@ void NavSatTransform::gpsFixCallback(
   if (good_gps) {
     // If we haven't computed the transform yet, then
     // store this message as the initial GPS data to use
+
+    // Run once. Set the current lat/long as the origin of gps_local_cartesian_ and transform_cartesian_pose_
     if (!transform_good_ && !use_manual_datum_) {
       setTransformGps(msg);
     }

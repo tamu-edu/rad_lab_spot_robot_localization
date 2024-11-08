@@ -56,11 +56,10 @@ def generate_launch_description():
             name='navsat_transform',
 	        output='screen',
             parameters=[parameters_file_path],
-            remappings=[('imu/data', 'gx5/imu_with_covariance'),
-                        ('gps/fix', 'gx5/gnss1/fix_corrected_frameid'), 
-                        # ('gps/filtered', 'gps/filtered'),
-                        ('odometry/gps', 'odometry/gps'),
-                        ('odometry/filtered', 'odometry/global')]           
+            remappings=[
+                ('gps/fix','gx5/gnss1/fix_corrected_frameid'),
+                ('odometry/filtered','odometry/global'),
+            ]
 
            )           
 ])

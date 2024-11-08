@@ -40,27 +40,10 @@ class SensorFusionNode(Node):
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def timer_callback(self):
-        # msg = NavSatFix()
-
-        # # Fill out the Header
-        # msg.header = Header()
-        # msg.header.stamp = self.get_clock().now().to_msg()
-        # msg.header.frame_id = "gps_frame"
-
-        # # Fill out the GPS data (example values)
-        # msg.latitude = 30.6405
-        # msg.longitude = -96.4872
-        # msg.altitude = 100.0
-        # msg.position_covariance = [0.0] * 9
-        # msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_UNKNOWN
-
-        # self.publisher_.publish(msg)
-
         if self.new_gps_msg == None:
             pass
         else:
             self.gps_pub.publish(self.new_gps_msg)
-
 
     def listener_twist_callback(self, msg):
         new_msg = TwistWithCovarianceStamped()
@@ -118,26 +101,14 @@ class SensorFusionNode(Node):
         imu_msg = Imu()
         imu_msg.header = msg.header
         imu_msg.header.frame_id = 'body'
-        # rotated_orientation = self.rotate_along_x_by_pi(msg.pose.pose.orientation)
         imu_msg.orientation = msg.pose.pose.orientation
         imu_msg.orientation_covariance = self.fill_covariance(0.1,3)
         self.imu_pub.publish(imu_msg)
-
+        
         enu_imu_msg = Imu()
         enu_imu_msg.header = msg.header
         enu_imu_msg.header.frame_id = 'body'
         enu_imu_msg.orientation = self.transform_quaternion(msg.pose.pose.orientation)
-        # debug
-        orientation_q = enu_imu_msg.orientation
-        quaternion = (
-            orientation_q.x,
-            orientation_q.y,
-            orientation_q.z,
-            orientation_q.w
-        )
-        roll, pitch, yaw = tf_transformations.euler_from_quaternion(quaternion)
-        self.get_logger().info(f"Yaw: {yaw:.2f} radians")
-        # end of debug
         enu_imu_msg.orientation_covariance = self.fill_covariance(0.1,3)
         self.enu_heading_pub.publish(enu_imu_msg)
         
