@@ -300,6 +300,7 @@ if(BUILD_TESTING)
     scripts/localization_launcher.py
     scripts/topic_republisher.py
     scripts/set_datum.py
+    scripts/set_time.py
   DESTINATION lib/${PROJECT_NAME}
   )
 

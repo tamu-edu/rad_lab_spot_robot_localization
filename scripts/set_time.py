@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import TwistStamped
@@ -12,11 +13,17 @@ class TimeSetter(Node):
             self.time_callback,
             10
         )
+        self.has_run = False  # Flag to check if the callback has already run
 
     def time_callback(self, msg):
+        if self.has_run:
+            return  # Skip further executions of the callback
+        
+        # Set flag to prevent further callback execution
+        self.has_run = True
+
         # Extract seconds and nanoseconds from header's stamp
         secs = msg.header.stamp.sec
-        nsecs = msg.header.stamp.nanosec
 
         # Convert to date format for the `date` command
         # Here, we use only seconds for simplicity, but you can handle nanoseconds if desired.
