@@ -20,7 +20,7 @@ class DatumServiceClient(Node):
         self.client = self.create_client(SetDatum, '/datum')
         self.polaris_sensor_check_passed_subscriber = self.create_subscription(Bool, '/polaris/sensor_check_passed', self.polaris_sensor_check_callback, 10)
         self.polaris_gps_subscriber = self.create_subscription(NavSatFix, '/polaris/gps', self.polaris_gps_callback, 10)
-        self.polaris_heading_subscriber = self.create_subscription(Float64, '/polaris/heading', self.polaris_heading_callback, 10)
+        # self.polaris_heading_subscriber = self.create_subscription(Float64, '/polaris/heading', self.polaris_heading_callback, 10)
         self.status_publisher = self.create_publisher(Bool, '/dog/is_datum_node_up', 10)
         
         # Create a timer that calls timer_callback at 4 Hz (every 0.25 seconds)
@@ -46,25 +46,27 @@ class DatumServiceClient(Node):
         self.polaris_lat = msg.latitude
         self.polaris_long = msg.longitude
 
-    def polaris_heading_callback(self,msg):
-        self.polaris_heading = msg.data
+    # def polaris_heading_callback(self,msg):
+    #     self.polaris_heading = msg.data
     
     def datum_timer_callback(self):
         
-        is_datum_node_up_msg = Bool()
-        is_datum_node_up_msg.data = True
-        self.status_publisher.publish(is_datum_node_up_msg)
-
         if self.polaris_sensor_check_passed and not self.datum_set_once:
 
             # Wait until the service is available
             while not self.client.wait_for_service(timeout_sec=1.0):
                 self.get_logger().info('Waiting for /datum service...')
 
+                # update status
+                is_datum_node_up_msg = Bool()
+                is_datum_node_up_msg.data = True
+                self.status_publisher.publish(is_datum_node_up_msg)
+
             # Convert to quaternion
             roll = 0.0
             pitch = 0.0
-            q = quaternion_from_euler(roll, pitch, self.polaris_heading)
+            yaw = 0.0
+            q = quaternion_from_euler(roll, pitch, yaw)
 
             # Create the request with the specified parameters
             self.request = SetDatum.Request()
