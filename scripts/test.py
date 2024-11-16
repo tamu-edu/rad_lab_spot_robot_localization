@@ -40,18 +40,15 @@ class TransformWaypointNode(Node):
 
             # Transform the received PoseStamped to body frame
             transformed_pose = tf2_geometry_msgs.do_transform_pose(pose_msg, transform)
-            
-            # Update the frame_id of the transformed pose to 'body'
-            # transformed_pose.header.frame_id = 'body'
-            # transformed_pose = PoseStamped()
-            # transformed_pose.header.frame_id = 'body'
-            # transformed_pose.pose = pose_msg
+
+            transformed_pose_stamped = PoseStamped()
+            transformed_pose_stamped.header.frame_id = "body"
+            transformed_pose_stamped.pose = transformed_pose
+            transformed_pose_stamped.pose.position.z = 0.0 #manual override
             
             # Publish the transformed pose to /move_base_simple/goal
-            # self.pub_goal.publish(transformed_pose)
-            self.pub_goal.publish(PoseStamped(header=Header(frame_id="body"), pose=Pose(position=Point(x=transformed_pose.position.x, y=transformed_pose.position.y))))
-            # self.pub_goal.publish(PoseStamped(header=Header(frame_id="body"), pose=Pose(position=Point(x=0.5, y=0.0))))
-        
+            self.pub_goal.publish(transformed_pose_stamped)
+
         except (LookupException, ConnectivityException, ExtrapolationException) as e:
             self.get_logger().error(f"Transform failed: {e}")
 
