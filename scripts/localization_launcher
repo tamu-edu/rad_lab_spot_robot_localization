@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
+import os
 import rclpy
+import launch
+import launch_ros.actions
 from rclpy.node import Node
 from std_msgs.msg import Bool
-import launch
 from launch import LaunchService
-from launch.substitutions import EnvironmentVariable
-import launch_ros.actions
 from ament_index_python.packages import get_package_share_directory
-import os
 
 def generate_launch_description():
     robot_localization_dir = get_package_share_directory('robot_localization')
@@ -55,14 +54,12 @@ def generate_launch_description():
 class LaunchLocalizationNode(Node):
     def __init__(self):
         super().__init__('launch_on_command_node')
-        self.launch_localization_subscriber = self.create_subscription(
-            Bool,
-            '/dog/launch_localization',
-            self.launch_localization_callback,
-            10
-        )
+
+        # Report node is initialized
+        self.get_logger().info("localization_launcher node initialized")
+
+        self.launch_localization_subscriber = self.create_subscription(Bool, '/dog/launch_localization', self.launch_localization_callback, 10)
         self.launch_service = None
-        self.get_logger().info("Node initialized and waiting for 'True' message on /dog/launch_localization to launch")
 
     def launch_localization_callback(self, msg):
         if msg.data:

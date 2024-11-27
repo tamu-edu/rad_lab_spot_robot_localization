@@ -297,10 +297,10 @@ if(BUILD_TESTING)
 
   # Install Python executables
   install(PROGRAMS
-    scripts/localization_launcher.py
-    scripts/topic_republisher.py
-    scripts/set_datum.py
-    scripts/set_time.py
+    scripts/localization_launcher
+    scripts/topic_republisher
+    scripts/set_datum
+    scripts/set_time
   DESTINATION lib/${PROJECT_NAME}
   )
 

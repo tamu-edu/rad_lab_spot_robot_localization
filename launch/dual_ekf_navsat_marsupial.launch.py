@@ -34,14 +34,6 @@ def generate_launch_description():
             'output_location',
 	    default_value='~/dual_ekf_navsat_example_debug.txt'),
     
-    # launch_ros.actions.Node(
-    #         package='robot_localization',
-    #         executable='datum_service_client',
-    #         name='datum_service_client_node',
-    #         parameters=[parameters_file_path],
-    #         output='screen'
-    #     ),
-	
     launch_ros.actions.Node(
             package='robot_localization', 
             executable='ekf_node', 
