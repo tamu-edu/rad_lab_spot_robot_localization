@@ -24,7 +24,7 @@ from ament_index_python.packages import get_package_share_directory
 def generate_launch_description():
     robot_localization_dir = get_package_share_directory('robot_localization')
     parameters_file_dir = os.path.join(robot_localization_dir, 'params')
-    parameters_file_path = os.path.join(parameters_file_dir, 'dual_ekf_navsat_example.yaml')
+    parameters_file_path = os.path.join(parameters_file_dir, 'dual_ekf_navsat_marsupial.yaml')
     os.environ['FILE_PATH'] = str(parameters_file_dir)
     return LaunchDescription([
         launch.actions.DeclareLaunchArgument(
@@ -33,7 +33,7 @@ def generate_launch_description():
         launch.actions.DeclareLaunchArgument(
             'output_location',
 	    default_value='~/dual_ekf_navsat_example_debug.txt'),
-	
+    
     launch_ros.actions.Node(
             package='robot_localization', 
             executable='ekf_node', 
@@ -56,11 +56,10 @@ def generate_launch_description():
             name='navsat_transform',
 	        output='screen',
             parameters=[parameters_file_path],
-            remappings=[('imu/data', 'imu/data'),
-                        ('gps/fix', 'gps/fix'), 
-                        ('gps/filtered', 'gps/filtered'),
-                        ('odometry/gps', 'odometry/gps'),
-                        ('odometry/filtered', 'odometry/global')]           
+            remappings=[
+                ('gps/fix','gx5/gnss1/fix_corrected_frameid'),
+                ('odometry/filtered','odometry/global'),
+            ]
 
            )           
 ])

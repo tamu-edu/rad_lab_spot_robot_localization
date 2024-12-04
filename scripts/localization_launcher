@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+import os
+import rclpy
+import launch
+import launch_ros.actions
+from rclpy.node import Node
+from std_msgs.msg import Bool
+from launch import LaunchService
+from ament_index_python.packages import get_package_share_directory
+
+def generate_launch_description():
+    robot_localization_dir = get_package_share_directory('robot_localization')
+    parameters_file_dir = os.path.join(robot_localization_dir, 'params')
+    parameters_file_path = os.path.join(parameters_file_dir, 'dual_ekf_navsat_marsupial.yaml')
+    os.environ['FILE_PATH'] = str(parameters_file_dir)
+    
+    return launch.LaunchDescription([
+        launch.actions.DeclareLaunchArgument(
+            'output_final_position',
+            default_value='false'),
+        launch.actions.DeclareLaunchArgument(
+            'output_location',
+            default_value='~/dual_ekf_navsat_example_debug.txt'),
+        
+        launch_ros.actions.Node(
+            package='robot_localization', 
+            executable='ekf_node', 
+            name='ekf_filter_node_odom',
+            output='screen',
+            parameters=[parameters_file_path],
+            remappings=[('odometry/filtered', 'odometry/local')]           
+           ),
+        launch_ros.actions.Node(
+            package='robot_localization', 
+            executable='ekf_node', 
+            name='ekf_filter_node_map',
+            output='screen',
+            parameters=[parameters_file_path],
+            remappings=[('odometry/filtered', 'odometry/global')]
+           ),           
+        launch_ros.actions.Node(
+            package='robot_localization', 
+            executable='navsat_transform_node', 
+            name='navsat_transform',
+            output='screen',
+            parameters=[parameters_file_path],
+            remappings=[
+                ('gps/fix','gx5/gnss1/fix_corrected_frameid'),
+                ('odometry/filtered','odometry/global'),
+            ]
+           )           
+    ])
+
+class LaunchLocalizationNode(Node):
+    def __init__(self):
+        super().__init__('launch_on_command_node')
+
+        # Report node is initialized
+        self.get_logger().info("localization_launcher node initialized")
+
+        self.launch_localization_subscriber = self.create_subscription(Bool, '/dog/launch_localization', self.launch_localization_callback, 10)
+        self.launch_service = None
+
+    def launch_localization_callback(self, msg):
+        if msg.data:
+            self.get_logger().info("Received 'True' message, launching launch file...")
+            self.trigger_launch()
+
+    def trigger_launch(self):
+        # Avoid launching multiple instances
+        if self.launch_service is not None:
+            self.get_logger().warn("Launch service is already running")
+            return
+
+        # Generate and run the launch description
+        ld = generate_launch_description()
+        self.launch_service = LaunchService()
+        self.launch_service.include_launch_description(ld)
+        self.launch_service.run()  # Blocking call
+        self.get_logger().info("Launch file execution complete")
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = LaunchLocalizationNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+
