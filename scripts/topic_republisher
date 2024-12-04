@@ -87,7 +87,6 @@ class SensorFusionNode(Node):
 
         return left_handed_quaternion
 
-
     def rotate_along_x_by_pi(self, q):
         # Create a new Quaternion message
         rotated_q = Quaternion()
