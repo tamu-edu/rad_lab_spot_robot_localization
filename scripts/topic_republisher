@@ -39,14 +39,14 @@ class SensorFusionNode(Node):
 
         # TODO: testing
         self.new_gps_msg = None
-        timer_period = 0.1  # 10 Hz
-        self.timer = self.create_timer(timer_period, self.timer_callback)
+        #timer_period = 0.1  # 10 Hz
+        #self.timer = self.create_timer(timer_period, self.timer_callback)
 
-    def timer_callback(self):
-        if self.new_gps_msg == None:
-            pass
-        else:
-            self.gps_pub.publish(self.new_gps_msg)
+    #def timer_callback(self):
+        #if self.new_gps_msg == None:
+            #pass
+        #else:
+            #self.gps_pub.publish(self.new_gps_msg)
 
     def listener_twist_callback(self, msg):
         new_msg = TwistWithCovarianceStamped()
@@ -118,15 +118,20 @@ class SensorFusionNode(Node):
         return np.diag([value]*num_states).flatten().tolist()
 
     def gps_callback(self, msg):
-        self.new_gps_msg = NavSatFix()
+        new_gps_msg = NavSatFix()
         
         # keep most of the msg the same
-        self.new_gps_msg = msg
+        new_gps_msg = msg
         
         # change the frame_id
-        self.new_gps_msg.header.frame_id = 'body'
+        new_gps_msg.header.frame_id = 'body'
 
-        # self.gps_pub.publish(new_gps_msg)
+        # manually increase the covariance by 1m
+        new_gps_msg.position_covariance[0] = msg.position_covariance[0] + 1.0
+        new_gps_msg.position_covariance[4] = msg.position_covariance[4] + 1.0
+        new_gps_msg.position_covariance[8] = msg.position_covariance[8] + 1.0
+
+        self.gps_pub.publish(new_gps_msg)
 
 def main(args=None):
     rclpy.init(args=args)
