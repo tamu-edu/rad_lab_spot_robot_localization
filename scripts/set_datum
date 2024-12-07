@@ -19,8 +19,8 @@ class DatumServiceClient(Node):
         self.polaris_sensor_check_passed = False
         self.polaris_lat = 0.0
         self.polaris_long = 0.0
-        self.polaris_heading = 0.0
         self.datum_set_once = False
+        self.polaris_gps_intitialized = False
         self.client = self.create_client(SetDatum, '/datum')
         self.polaris_sensor_check_passed_subscriber = self.create_subscription(Bool, '/polaris/sensor_check_passed', self.polaris_sensor_check_callback, 10)
         self.polaris_gps_subscriber = self.create_subscription(NavSatFix, '/polaris/gps', self.polaris_gps_callback, 10)
@@ -43,7 +43,6 @@ class DatumServiceClient(Node):
             for param, value in params['navsat_transform']['ros__parameters'].items():
                 self.declare_parameter(param, value)
 
-
     def send_request(self):
 
         if self.wait_for_datum:
@@ -58,9 +57,11 @@ class DatumServiceClient(Node):
         self.polaris_lat = msg.latitude
         self.polaris_long = msg.longitude
 
+        self.polaris_gps_intitialized = True
+
     def datum_timer_callback(self):
 
-        if self.polaris_sensor_check_passed and not self.datum_set_once:
+        if self.polaris_gps_intitialized and self.polaris_sensor_check_passed and not self.datum_set_once:
 
             # Convert to quaternion
             roll = 0.0
