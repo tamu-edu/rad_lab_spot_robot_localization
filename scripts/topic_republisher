@@ -16,37 +16,18 @@ class SensorFusionNode(Node):
         self.get_logger().info("topic_republisher node initialized")
         
         # Twist Subscriber and Publisher
-        self.subscription_twist = self.create_subscription(
-            TwistStamped,
-            '/mcu/state/vel',
-            self.listener_twist_callback,
-            10)
+        self.subscription_twist = self.create_subscription(TwistStamped, '/mcu/state/vel', self.listener_twist_callback, 10)
         self.publisher_twist_cov = self.create_publisher(TwistWithCovarianceStamped, '/mcu/state/vel_with_covariance', 10)
 
         # Odom Subscriber and IMU publisher
-        self.odom_sub = self.create_subscription( 
-            Odometry, '/gx5/nav/odom', self.listener_odom_callback, 10)
+        self.odom_sub = self.create_subscription(Odometry, '/gx5/nav/odom', self.listener_odom_callback, 10)
         self.imu_pub = self.create_publisher(Imu, '/gx5/imu_with_covariance', 10)
         self.enu_heading_pub = self.create_publisher(Imu, '/gx5/enu_heading', 10)
 
         # GPS subscriber and publisher
-        self.gps_sub = self.create_subscription(
-            NavSatFix, 
-            '/gx5/gnss1/fix', 
-            self.gps_callback, 
-            10)
+        self.gps_sub = self.create_subscription(NavSatFix, '/gx5/gnss1/fix', self.gps_callback, 10)
         self.gps_pub = self.create_publisher(NavSatFix, '/gx5/gnss1/fix_corrected_frameid', 10)
-
-        # TODO: testing
         self.new_gps_msg = None
-        #timer_period = 0.1  # 10 Hz
-        #self.timer = self.create_timer(timer_period, self.timer_callback)
-
-    #def timer_callback(self):
-        #if self.new_gps_msg == None:
-            #pass
-        #else:
-            #self.gps_pub.publish(self.new_gps_msg)
 
     def listener_twist_callback(self, msg):
         new_msg = TwistWithCovarianceStamped()
@@ -137,9 +118,6 @@ def main(args=None):
     rclpy.init(args=args)
     sensor_fusion_node = SensorFusionNode()
     rclpy.spin(sensor_fusion_node)
-    # Destroy the node explicitly
-    # (optional - otherwise it will be done automatically
-    # when the garbage collector destroys the node object)
     sensor_fusion_node.destroy_node()
     rclpy.shutdown()
 
