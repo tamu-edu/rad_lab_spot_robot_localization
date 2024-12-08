@@ -20,7 +20,6 @@ class DatumServiceClient(Node):
         self.polaris_lat = 0.0
         self.polaris_long = 0.0
         self.datum_set_once = False
-        self.polaris_gps_intitialized = False
         self.client = self.create_client(SetDatum, '/datum')
         self.polaris_sensor_check_passed_subscriber = self.create_subscription(Bool, '/polaris/sensor_check_passed', self.polaris_sensor_check_callback, 10)
         self.polaris_gps_subscriber = self.create_subscription(NavSatFix, '/polaris/gps', self.polaris_gps_callback, 10)
@@ -35,6 +34,11 @@ class DatumServiceClient(Node):
         )
         self.declare_parameters_from_yaml(param_file_path)
         self.wait_for_datum = self.get_parameter('wait_for_datum').get_parameter_value().bool_value
+
+        if self.wait_for_datum:
+            self.polaris_gps_intitialized = False
+        else:
+            self.polaris_gps_intitialized = True
 
     def declare_parameters_from_yaml(self, param_file_path):
         from yaml import safe_load
